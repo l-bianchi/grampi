@@ -1,27 +1,29 @@
 services:
   ollama:
     container_name: grampi_ollama
-    image: ollama/ollama
-    ports:
-      - 11434:11434
+    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
     volumes:
       - ollama:/root/.ollama
-    healthcheck:
-      test: ollama --version || exit 1
-    command: serve
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
 
   webui:
     container_name: grampi_webui
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
     ports:
       - 8080:8080
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
       - webui:/app/backend/data
     depends_on:
       - ollama
+    environment:
+      - "OLLAMA_BASE_URL=http://ollama:11434"
+      - "WEBUI_SECRET_KEY="
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
 
 volumes:
-  ollama:
-  webui:
+  ollama: {}
+  webui: {}
